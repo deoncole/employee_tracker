@@ -63,25 +63,37 @@ const promptUser = () => {
 
 // method to view all of the departments in the database
 const viewDepartments = () => {
-    console.log('ready to view departments');
-        // prepared statement to select and view all of the departments from the departments table
-        const sql = `SELECT departments.id AS department_id, departments.name AS department_name FROM departments`;
-        // query the database and 
-        db.query(sql, (err, results)=>{
-            if(err){
-                res.status(500).json({error: err.message});
-                return;
-            }
-            // display the results from the table
-            console.table(results)
-            // call the inital user prompt
-            promptUser();
-        });
+    console.log('ready to view departments \n');
+    // prepared statement to select and view all of the departments from the departments table
+    const sql = `SELECT departments.id AS department_id, departments.name AS department_name FROM departments`;
+    // query the database and show the results
+    db.query(sql, (err, results) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        // display the results from the table
+        console.table(results)
+        // call the inital user prompt
+        promptUser();
+    });
 };
 
 // method to view all of the roles in the database
 const viewRoles = () => {
-    console.log('ready to view roles');
+    console.log('ready to view roles \n');
+    // prepared statement to select and view the roles from the database
+    const sql = `SELECT roles.title AS job_title, roles.id, departments.name AS department_name, roles.salary FROM roles,departments WHERE roles.id = departments.id`;
+    db.query(sql, (err, results) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        // display the results from the table
+        console.table(results)
+        // call the inital user prompt
+        promptUser();
+    });
 };
 
 // method to view all of the employees in the database
