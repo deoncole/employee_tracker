@@ -1,8 +1,9 @@
+-- when the database is recreated drop the tables if they exist to start fresh
 DROP TABLE IF EXISTS employee;
 DROP TABLE IF EXISTS roles;
 DROP TABLE IF EXISTS departments;
 
-
+-- create a table for the departments, roles, and employees
 CREATE TABLE departments(
     id INTEGER AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(30) NOT NULL

@@ -1,3 +1,4 @@
+-- insert the values into the departments, roles, and employee tables to populate the database
 INSERT INTO departments (name)
 VALUES
     ('Administrators'),
