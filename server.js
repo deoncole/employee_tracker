@@ -63,15 +63,13 @@ const promptUser = () => {
 
 // method to view all of the departments in the database
 const viewDepartments = () => {
-    console.log('ready to view departments \n');
+    console.log('View all departments: \n');
     // prepared statement to select and view all of the departments from the departments table
     const sql = `SELECT departments.id AS department_id, departments.name AS department_name FROM departments`;
     // query the database and show the results
     db.query(sql, (err, results) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
+        if (err) throw err;
+
         // display the results from the table
         console.table(results)
         // call the inital user prompt
@@ -81,14 +79,13 @@ const viewDepartments = () => {
 
 // method to view all of the roles in the database
 const viewRoles = () => {
-    console.log('ready to view roles \n');
+    console.log('View all of the roles: \n');
     // prepared statement to select and view the roles from the database
     const sql = `SELECT roles.title AS job_title, roles.id, departments.name AS department_name, roles.salary FROM roles,departments WHERE roles.id = departments.id`;
+    // query the database and show the results
     db.query(sql, (err, results) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
+        if (err) throw err;
+
         // display the results from the table
         console.table(results)
         // call the inital user prompt
@@ -98,7 +95,17 @@ const viewRoles = () => {
 
 // method to view all of the employees in the database
 const viewEmployees = () => {
-    console.log('ready to view employees');
+    console.log('View all of the employees: \n');
+    const sql = `SELECT employee.id, CONCAT(employee.first_name, ' ',employee.last_name) AS employee_name, roles.title AS job_title, departments.name AS department, roles.salary, employee.manager_id FROM employee LEFT JOIN roles ON employee.roles_id = roles.id LEFT JOIN departments ON employee.roles_id = departments.id`;
+    // query the database and show the results
+    db.query(sql, (err, results) => {
+        if (err) throw err;
+
+        // display the results from the table
+        console.table(results)
+        // call the inital user prompt
+        promptUser();
+    });
 };
 
 // method to add a department to the database
