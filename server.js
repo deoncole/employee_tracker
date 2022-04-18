@@ -1,16 +1,20 @@
 // require the express package
 const express = require('express');
-// require the mysql package
-const mysql = require('mysql2');
 // require the inquirer package
 const inquirer = require ('inquirer');
 // require the console table package
 const cTable = require('console.table');
+// require the database connection
+const db = require('./db/connection');
 
 // set an enviornment to use the port neccessary for Heroku
 const PORT = process.env.PORT || 3001;
 // create an instance of the server and start express with app const
 const app = express();
+
+// add the express middleware
+app.use(express.urlencoded({extended: false}));
+app.use(express.json());
 
 // array for the choices to be used in the prompt
 const menuOptions = ['View all departments', 'View all roles', 'View all employees', 'Add a department', 'Add a role', 'Add an employee', 'Update an employee role'];
@@ -60,6 +64,7 @@ const promptUser = () => {
 // method to view all of the departments in the database
 const viewDepartments = () => {
     console.log('ready to view departments');
+
 };
 
 // method to view all of the roles in the database
@@ -92,9 +97,13 @@ const addEmployee = () => {
     console.log('ready to add a employee');
 };
 
-promptUser();
-
-// start listening
-// app.listen(PORT, ()=> {
-//     console.log(`API server now on port ${PORT}!`);
-// })
+//connect to the database and start listening
+db.connect(err => {
+    if (err) throw err;
+    app.listen(PORT, ()=> {
+    console.log(`API server now on port ${PORT}!`);
+   
+    // function to start the prompts 
+    promptUser();
+    });
+})
