@@ -110,12 +110,39 @@ const viewEmployees = () => {
 
 // method to add a department to the database
 const addDepartment = () => {
-    console.log('ready to add a department');
+    console.log('ready to add a department: \n');
+
+    inquirer
+        .prompt([
+            {
+                type: 'input',
+                name: 'dept_name',
+                message: 'Enter the name of the Department: ',
+                validate (nameValue){
+                    if(!nameValue){
+                        return 'Please enter a Department name!'
+                    }
+                    return true
+                }
+            }
+        ])
+        .then ((dept) =>{
+            console.log(dept.dept_name);
+            const sql = `INSERT INTO departments (name) VALUES ("${dept.dept_name}")`;
+            db.query(sql, (err, results)=>{
+                if (err) throw err;
+
+                // display the results from the table
+                 console.table(results)
+                // call the inital user prompt
+                promptUser();
+            });
+        });
 };
 
 // method to add a role to the database
 const addRole = () => {
-    console.log('ready to add a role');
+    console.log('Ready to add a new role');
 };
 
 // method to update an employee's role to the database
