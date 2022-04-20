@@ -46,6 +46,12 @@ function userChoice (choice){
     }
 };
 
+// function to validate if the user's salary input is correct
+function isDecimal(input){
+    var regex = /^\d+\.\d{0,2}$/;
+return (regex.test(input));
+};
+
 // inquirer prompts for the user to get started
 const promptUser = () => {
     inquirer.prompt([
@@ -142,7 +148,62 @@ const addDepartment = () => {
 
 // method to add a role to the database
 const addRole = () => {
-    console.log('Ready to add a new role');
+    console.log('Ready to add a new role: \n');
+    // prepared statement to select all of the departments
+    const sql = `SELECT * FROM departments`;
+    // empty array to hold the departments for the choices prompt
+    let deptNames = [];
+    let map = new Map();
+    //query the database and loop through the data and put them into the array
+    db.query(sql, (err, rows)=>{
+        if (err) throw err;
+        for (let i=0; i<rows.length; i++){
+            deptNames.push(rows[i].name);
+        }
+    });
+    // prompt for the new role
+    inquirer
+        .prompt([
+            {
+                type: 'input',
+                name: 'role_name',
+                message: 'Enter the new role',
+                validate (roleName){
+                    if(!roleName){
+                        return 'Please enter a Role!'
+                    }
+                    return true
+                }
+            },
+            {
+                type: 'input',
+                name: 'salary_info',
+                message: 'Enter the salary',
+                validate (salaryValue){
+                    if(!isDecimal(salaryValue)){
+                        return 'Please enter a valid Salary, ex.(35000.00)'
+                    }
+                    return true
+                }
+            },
+            {
+                type: 'list',
+                name: 'dept_names',
+                message: 'Which department does this role belong to?',
+                choices: deptNames
+            }
+        ])
+        .then((role)=>{
+            const dpSql = `SELECT id FROM departments WHERE name = "${role.dept_names}"`
+            // query the database
+            db.query(dpSql, (err, row)=>{
+                if (err) throw err;
+                // const to get the id object into an array of it's own
+                let chosenId = row.map(a => a.id);
+                // call the funtion to add the role into the database
+                roleToDatabase(role.role_name, role.salary_info, chosenId[0])
+            });
+        });
 };
 
 // method to update an employee's role to the database
@@ -152,8 +213,20 @@ const updateRole = () => {
 
 // method to add a employee to the database
 const addEmployee = () => {
-    console.log('ready to add a employee');
+    console.log('ready to add a employee: \n');
 };
+
+// function to add the new role into the database
+const roleToDatabase = (title, salary, id) => {
+    const sql = `INSERT INTO roles (title, salary, dept_id) VALUES ("${title}","${salary}","${id}")`
+    db.query(sql, (err, results)=>{
+        if (err) throw err;
+        // display the updated changes to confirm the database has been updated
+        console.table(results);
+        // prompt the user
+        promptUser();
+    });
+}
 
 //connect to the database and start listening
 db.connect(err => {
