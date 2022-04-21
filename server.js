@@ -101,7 +101,7 @@ const viewRoles = () => {
 
 // method to view all of the employees in the database
 const viewEmployees = () => {
-    console.log('View all of the employees: \n');
+    console.log('\n View all of the employees: \n');
     const sql = `SELECT employee.id, CONCAT(employee.first_name, ' ',employee.last_name) AS employee_name, roles.title AS job_title, departments.name AS department, roles.salary, employee.manager_id FROM employee LEFT JOIN roles ON employee.roles_id = roles.id LEFT JOIN departments ON employee.roles_id = departments.id`;
     // query the database and show the results
     db.query(sql, (err, results) => {
@@ -116,7 +116,7 @@ const viewEmployees = () => {
 
 // method to add a department to the database
 const addDepartment = () => {
-    console.log('ready to add a department: \n');
+    console.log('\n Ready to add a department: \n');
 
     inquirer
         .prompt([
@@ -148,12 +148,11 @@ const addDepartment = () => {
 
 // method to add a role to the database
 const addRole = () => {
-    console.log('Ready to add a new role: \n');
+    console.log('\n Ready to add a new role: \n');
     // prepared statement to select all of the departments
     const sql = `SELECT * FROM departments`;
     // empty array to hold the departments for the choices prompt
     let deptNames = [];
-    let map = new Map();
     //query the database and loop through the data and put them into the array
     db.query(sql, (err, rows)=>{
         if (err) throw err;
@@ -208,12 +207,75 @@ const addRole = () => {
 
 // method to update an employee's role to the database
 const updateRole = () => {
-    console.log('ready to update the employees role');
+    console.log("\n Ready to update the employee's role \n");
+    
 };
 
 // method to add a employee to the database
 const addEmployee = () => {
-    console.log('ready to add a employee: \n');
+    console.log('\n ready to add a employee: \n');
+    // prepared statement to select all of the roles
+    const sql = `SELECT * FROM roles`;
+    // empty array to hold the departments for the choices prompt
+    let roleNames = [];
+
+    //query the database and loop through the data and put them into the array
+    db.query(sql, (err, rows)=>{
+        if (err) throw err;
+        for (let i=0; i<rows.length; i++){
+            roleNames.push(rows[i].title);
+        }
+    });
+    //prompt user to enter new employee information
+    inquirer
+        .prompt([
+            {
+                type: 'input',
+                name: 'empFirstName',
+                message: "Enter the employee's first name: ",
+                validate (fstName) {
+                    if(!fstName){
+                        return "Please enter the employee's first name!"
+                    }
+                    return true;
+                }
+            },
+            {
+                type: 'input',
+                name: 'empLastName',
+                message: "Enter the employee's last name: ",
+                validate (lstName) {
+                    if(!lstName){
+                        return "Please enter the employee's last name!"
+                    }
+                    return true;
+                }
+            },
+            {
+                type: 'list',
+                name: 'role_names',
+                message: 'What role will the employee be?',
+                choices: roleNames
+            },
+            {
+                type: 'list',
+                name: 'mgrID',
+                message: 'What manager level will the employee report to?',
+                choices: [1,2,3]
+
+            }
+        ])
+        .then((empAnswers)=>{
+            const dpSql = `SELECT id FROM roles WHERE title = "${empAnswers.role_names}"`
+            // query the database
+            db.query(dpSql, (err, row)=>{
+                if (err) throw err;
+                // const to get the id object into an array of it's own
+                let roleId = row.map(a => a.id);
+                // call the funtion to add the employee into the database
+                newEmpToDatabase(empAnswers.empFirstName,empAnswers.empLastName,roleId,empAnswers.mgrID);
+            });
+        });
 };
 
 // function to add the new role into the database
@@ -226,7 +288,17 @@ const roleToDatabase = (title, salary, id) => {
         // prompt the user
         promptUser();
     });
-}
+};
+// function to add the new employee into the database
+const newEmpToDatabase = (fName, lName, rId, mId) => {
+    const sql = `INSERT INTO employee (first_name, last_name, roles_id, manager_id) VALUES ("${fName}","${lName}","${rId}","${mId}")`
+    db.query(sql, (err, results)=>{
+        // display the updated changes to confirm the database has been updated
+        console.table(results);
+        // prompt the user
+        promptUser();
+    });
+};
 
 //connect to the database and start listening
 db.connect(err => {
