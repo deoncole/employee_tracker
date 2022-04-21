@@ -208,9 +208,41 @@ const addRole = () => {
 // method to update an employee's role to the database
 const updateRole = () => {
     console.log("\n Ready to update the employee's role \n");
+    // prepared statement to select all of the roles
+    const sql = `SELECT first_name, last_name, roles.title FROM employee, roles WHERE employee.roles_id = roles.id`;
+    // empty arrays to hold the info for the choices prompts
+    let eName = [];
     
+    db.query(sql, (err, rows)=>{
+        if (err) throw err;
+        // loop through the rows to set the employee names array
+        for (let i=0; i<rows.length; i++){
+            eName.push(rows[i].first_name + ' ' + rows[i].last_name);
+        }
+        // // loop through the rows to set the roles array
+        // for (let i=0; i<rows.length; i++){
+        //     rNames.push(rows[i].title)
+        // }
+        // // filter through the array and remove the duplicates to be used for the prompt
+        // let allRoles = rNames.filter((a,index)=>{
+        //     return rNames.indexOf(a)===index;
+        // });
+    });
+        
+    // console.table(allRoles);
+    // prompt the user to choose a employee to update
+    inquirer
+        .prompt([
+            {
+                type: 'list',
+                name: 'eNames',
+                message: "Which employee's role do you want to update?",
+                choices: eName
+            }
+        ]);
+        
 };
-
+    
 // method to add a employee to the database
 const addEmployee = () => {
     console.log('\n ready to add a employee: \n');
