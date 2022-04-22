@@ -211,9 +211,10 @@ const updateRole = () => {
     // prepared statement to select all of the roles
     const sql = `SELECT first_name, last_name, roles.title FROM employee, roles WHERE employee.roles_id = roles.id`;
     // empty arrays to hold the info for the choices prompts
-    let eName = [];
+    // let eName = [];
     
     db.query(sql, (err, rows)=>{
+        let eName = [];
         if (err) throw err;
         // loop through the rows to set the employee names array
         for (let i=0; i<rows.length; i++){
@@ -229,7 +230,6 @@ const updateRole = () => {
         // });
     });
         
-    // console.table(allRoles);
     // prompt the user to choose a employee to update
     inquirer
         .prompt([
