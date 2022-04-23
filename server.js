@@ -4,7 +4,7 @@ const express = require('express');
 const inquirer = require ('inquirer');
 // require the console table package
 const cTable = require('console.table');
-// require the database connection
+// // require the database connection
 const db = require('./db/connection');
 
 // set an enviornment to use the port neccessary for Heroku
@@ -210,36 +210,50 @@ const updateRole = () => {
     console.log("\n Ready to update the employee's role \n");
     // prepared statement to select all of the roles
     const sql = `SELECT first_name, last_name, roles.title FROM employee, roles WHERE employee.roles_id = roles.id`;
-    // empty arrays to hold the info for the choices prompts
-    // let eName = [];
-    
+    //query the database
     db.query(sql, (err, rows)=>{
         let eName = [];
         if (err) throw err;
-        // loop through the rows to set the employee names array
-        for (let i=0; i<rows.length; i++){
-            eName.push(rows[i].first_name + ' ' + rows[i].last_name);
-        }
-        // // loop through the rows to set the roles array
-        // for (let i=0; i<rows.length; i++){
-        //     rNames.push(rows[i].title)
-        // }
-        // // filter through the array and remove the duplicates to be used for the prompt
-        // let allRoles = rNames.filter((a,index)=>{
-        //     return rNames.indexOf(a)===index;
-        // });
-    });
+        // set the query to a constant
+        const employees = rows;
+        // get a new array to be used by concat the employees first and last name for the choices prompt
+        const eNameMap = employees.map(a => `${a.first_name} ${a.last_name}`);
+        // get a new array of the name of the roles to be used in the choices prompt
+        const rTitleMap = employees.map(a => `${a.title}`);
         
-    // prompt the user to choose a employee to update
-    inquirer
-        .prompt([
-            {
-                type: 'list',
-                name: 'eNames',
-                message: "Which employee's role do you want to update?",
-                choices: eName
-            }
-        ]);
+        // filter through the array and remove the duplicates to be used for the prompt
+        let allRoles = rTitleMap.filter((a,index)=>{
+                return rTitleMap.indexOf(a)===index;
+            });
+
+            inquirer
+                .prompt([
+                    {
+                        type: 'list',
+                        name: 'eNames',
+                        message: "Which employee's role do you want to update?",
+                        choices: eNameMap
+                    },
+                    {
+                        type: 'list',
+                        name: 'rNames',
+                        message: "What is the employee's new role?",
+                        choices: allRoles
+                    }
+                ])
+                .then((empUpdateAnswers)=>{
+                    const empToUpdate = empUpdateAnswers.eNames.split(' ',1);
+                    const rSql = `SELECT id FROM roles WHERE title = "${empUpdateAnswers.rNames}"`
+                    // query the database
+                    db.query(rSql, (err, row)=>{
+                        if (err) throw err;
+                        // const to get the id object into an array of it's own
+                        let roleId = row.map(a => a.id);
+                        // call the funtion to update the employee's role into the database
+                        updateEmployeesRole(empToUpdate[0],roleId);
+                    });
+                });
+    });
         
 };
     
@@ -332,6 +346,15 @@ const newEmpToDatabase = (fName, lName, rId, mId) => {
     });
 };
 
+const updateEmployeesRole = (name, roleId) =>{
+    const sql = `UPDATE employee SET roles_id = "${roleId}" WHERE first_name = "${name}"`
+    db.query(sql, (err, results)=>{
+        console.table(results);
+        // prompt the user
+        promptUser();
+    });
+};
+
 //connect to the database and start listening
 db.connect(err => {
     if (err) throw err;
@@ -341,4 +364,4 @@ db.connect(err => {
     // function to start the prompts 
     promptUser();
     });
-})
+});
